@@ -1,67 +1,61 @@
-import logo from "./logo.svg";
 import "./App.css";
-import { Bitski } from "krypteo";
+import {Bitski} from "krypteo";
 import Web3 from "web3";
-import { AuthorizationServiceConfiguration } from "@openid/appauth";
+import {useEffect, useState} from "react";
 
 function App() {
-    // console.log(window.location.origin);
+
+  const [result, setResult] = useState();
+
+  useEffect(() => {
     const bitski = new Bitski(
-        "8a99928d-12eb-41a8-a1df-8a2838fe16d9",
-        // "6f1232b1-3742-4ad3-9a6c-03c895a02fed",
+        "6f7ef93b-e42a-45ce-87a7-8dee62bb1fa2",
         `${window.location.origin}/callback/callback.html`,
         [],
-        {
-            configuration: new AuthorizationServiceConfiguration({
-                authorization_endpoint:
-                    "http://192.168.0.190:3232/auth/realms/wallet/protocol/openid-connect/auth",
-                revocation_endpoint: "",
-                token_endpoint:
-                    "http://192.168.0.190:3232/auth/realms/wallet/protocol/openid-connect/token",
-                userinfo_endpoint:
-                    "http://192.168.0.190:3232/auth/realms/wallet/protocol/openid-connect/userinfo",
-            }),
-        },
     );
+    window.bitski = bitski;
 
-    const provider = bitski.getProvider();
-    const web3 = new Web3(provider);
+    const provider = bitski.getProvider({network: {
+        chainId: 3305,
+        rpcUrl: "https://node-testnet.corexchain.io"
+      }});
+    window.web3 = new Web3(provider);
+  }, []);
 
     async function signIn() {
-        await bitski.signIn();
+        await window.bitski.signIn();
     }
 
-    // async function getBlockNumber() {
-    //     const network = await web3.eth.getBlockNumber();
-    //     console.log(network);
-    // }
-
     async function getAccounts() {
-        const accounts = await web3.eth.getAccounts();
+        const accounts = await window.web3.eth.getAccounts();
         console.log(accounts);
     }
 
-    // signIn();
-    // getBlockNumber();
-    // getAccounts();
+    async function sendTx() {
+      const accounts = await window.web3.eth.getAccounts();
+      window.web3.eth.sendTransaction(
+          {
+            from: accounts[0],
+            to: '0x89995e30DAB8E3F9113e216EEB2f44f6B8eb5730',
+            value: window.web3.utils.toWei('1', 'ether'),
+            gas: 21000,
+            gasPrice: window.web3.utils.toWei('1000', 'gwei'),
+          }).then((x) => {
+            setResult(x.transactionHash);
+            console.log(x);
+      }).catch(e => {
+        console.log(e);
+      })
+    }
 
     return (
         <div className="App">
             <header className="App-header">
                 <button onClick={() => signIn()}>signIn</button>
                 <button onClick={() => getAccounts()}>get accounts</button>
-                <img src={logo} className="App-logo" alt="logo" />
-                <p>
-                    Edit <code>src/App.js</code> and save to reload.
-                </p>
-                <a
-                    className="App-link"
-                    href="https://reactjs.org"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    Learn React
-                </a>
+                <button onClick={() => sendTx()}>send</button>
+              {result && <a href={`https://explorer-testnet.corexchain.io/transactions/${result}`}
+                            target='_blank' rel='noopener noreferrer'>{result}</a>}
             </header>
         </div>
     );
