@@ -4,7 +4,7 @@
     "private": true,
     "dependencies": {
         "bitski": "^0.14.2",
-        "krypteo": "^0.0.9",
+        "krypteo": "^0.0.10",
         "openid": "^2.0.10",
         "react": "16.14.0",
         "react-dom": "16.14.0",
